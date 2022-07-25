@@ -22,38 +22,37 @@ namespace StarChart.Controllers
         [HttpGet("{id:int}", Name ="GetById")]
         public IActionResult GetById(int id)
         {
-            CelestialObject celestialObject = _context.CelestialObjects.Find(id);
+            var celestialObject = _context.CelestialObjects.Find(id);
 
             if (celestialObject == null)
-            {
                 return NotFound();
-            }
-
-            celestialObject.OrbitedObjectId = celestialObject.Id;
-            
-            return Ok();
+            celestialObject.Satellites = _context.CelestialObjects.Where(e => e.OrbitedObjectId == id).ToList();         
+            return Ok(celestialObject);
         }
 
         [HttpGet("{name}")]
         public IActionResult GetByName(string name)
         {
-            CelestialObject celestialObject = _context.CelestialObjects.Find(name);
+            var celestialObjects = _context.CelestialObjects.Where(e => e.Name == name);
 
-            if (celestialObject == null)
-            {
+            if (!celestialObjects.Any())
                 return NotFound();
+            foreach (var celestialObject in celestialObjects)
+            {
+                celestialObject.Satellites = _context.CelestialObjects.Where(e => e.OrbitedObjectId == celestialObject.Id).ToList();
             }
-
-            celestialObject.OrbitedObjectId = celestialObject.Id;
-            return Ok();
+            return Ok(celestialObjects.ToList());
         }
 
         [HttpGet]
         public IActionResult GetAll()
         {
-            List<CelestialObject> celestialObjects = _context.CelestialObjects.ToList();
-
-            return Ok();
+           var celestialObjects = _context.CelestialObjects.ToList();
+            foreach (var celestialObject in celestialObjects)
+            {
+                celestialObject.Satellites = _context.CelestialObjects.Where(e => e.OrbitedObjectId == celestialObject.Id).ToList();
+            }
+            return Ok(celestialObjects);
         }
     }
 }
